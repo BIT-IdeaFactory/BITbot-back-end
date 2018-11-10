@@ -3,7 +3,7 @@ name := "BitBot"
 version := "0.1"
 
 scalaVersion := "2.12.7"
-lazy val akkaVersion = "2.15.16"
+lazy val akkaVersion = "2.5.18"
 lazy val akkaHttpVersion  = "10.1.5"
 
 libraryDependencies ++= Seq(
@@ -12,5 +12,5 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
-  "org.reactivemongo" %% "reactivemongo" % "0.11.14"
+  "org.reactivemongo" %% "reactivemongo" % "0.16.0"
 )
