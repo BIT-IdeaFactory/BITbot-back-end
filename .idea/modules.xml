@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/BITbot-back-end.iml" filepath="$PROJECT_DIR$/.idea/BITbot-back-end.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/BitBot.iml" filepath="$PROJECT_DIR$/.idea/modules/BitBot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/bitbot-back-end-build.iml" filepath="$PROJECT_DIR$/.idea/modules/bitbot-back-end-build.iml" />
+    </modules>
+  </component>
+</project>
