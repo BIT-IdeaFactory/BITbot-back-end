@@ -14,14 +14,16 @@ object DBConnector extends DBConnectionProps {
         println("opening connection to database")
         
         val basicDataField: BasicDataField = BasicDataField("Czy ?", "Tak", "Józio")
-        val collection = db.map(_.collection[BSONCollection]("gatheredData"))
+        val collection = database.map(_.collection[BSONCollection]("gatheredData"))
         
         collection.map(_.insert(BSON.write(basicDataField)))
         val result = collection.flatMap(_.find(BSONDocument("userName" → "Józio")).one)
         
-        result.onSuccess {
-            case Some(doc) ⇒ print(BSON.readDocument[BasicDataField](doc).userName)
+        result.foreach {
+            case Some(doc) ⇒ print(BSON.readDocument[BasicDataField](doc))
             case None ⇒ println("got nothing")
         }
+
+        result.onComplete(_ => driver.close())
     }
 }
