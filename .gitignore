@@ -66,7 +66,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # Simple Build Tool
-# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+# bitbit.server.http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
 
 dist/*
 target/
@@ -77,3 +77,6 @@ project/plugins/project/
 .history
 .cache
 .lib/
+
+# cutting out configuration files
+*.conf
