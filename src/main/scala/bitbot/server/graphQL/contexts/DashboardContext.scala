@@ -1,47 +1,43 @@
 package bitbot.server.graphQL.contexts
 
-import akka.actor.ActorRef
-import akka.pattern.ask
-import bitbot.server.actors.{AuthorisationActor, DBAccessActor}
+
+import bitbot.server.dbAccesPoints.DataBaseAccessPoint
 import bitbot.server.graphQL.models._
+import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
-import scala.concurrent.duration._
-import akka.util.Timeout
-import bitbot.server.actors.AuthorisationActor.AuthResponse
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success}
 
-import scala.concurrent.{Await, Future}
-
-case class DashboardContext(dbActor: ActorRef,
-                       authActor: ActorRef,
-                       maybeToken: Option[AuthorizationToken] = None) {
-  implicit val timeout: Timeout = Timeout(30 seconds)
+case class DashboardContext(DAO: DataBaseAccessPoint, maybeToken: Option[AuthorizationToken] = None) {
   
   def login(login: String, passwd: String): AuthorizationToken = {
-    import AuthorisationActor.LogInMessage
-    val futureMaybeRes: Future[Option[AuthorizationToken]] =
-      (authActor ? LogInMessage(login, passwd)).mapTo[Option[AuthorizationToken]]
-    val maybeRes = Await.result(futureMaybeRes, Duration.Inf)
-    maybeRes.getOrElse(
-      throw AuthenticationException("email or password are incorrect!")
-    )
+    // login mock
+    Await.result(DAO.getAdminUser(login, passwd), Duration.Inf)
+    AuthorizationToken(Jwt.encode(
+          // 20 minutes
+          JwtClaim().+("user", login).issuedNow.expiresIn(1200),
+          "secretKey",
+          JwtAlgorithm.HS512
+    ))
   }
   
   def ensureAuthenticated(): Unit = {
-    val token = maybeToken.getOrElse(
-      throw AuthorizationException("Unauthorized operation. Please log in.")
-    )
-    import AuthorisationActor.AuthoriseMessage
-    val futureMaybeRes: Future[Option[AuthResponse]] =
-      (authActor ? AuthoriseMessage(token)).mapTo[Option[AuthResponse]]
-    val maybeRes = Await.result(futureMaybeRes, Duration.Inf)
-    maybeRes.getOrElse(
-      throw AuthenticationException("email or password are incorrect!")
-    )
+    maybeToken match {
+      case None => throw AuthorizationException("Unauthorized operation. Please log in.")
+      case Some(AuthorizationToken(token)) => validateToken(token)
+    }
   }
   
   def ensureUnauthenticated(): Unit = {
     if(maybeToken.isDefined) {
       throw AuthorizationException("Already loggedIn!")
+    }
+  }
+  
+  def validateToken(token: String): Unit = {
+    if(!Jwt.isValid(token, "secretKey", JwtAlgorithm.allHmac())){
+      throw AuthenticationException("Token invalid!")
     }
   }
   

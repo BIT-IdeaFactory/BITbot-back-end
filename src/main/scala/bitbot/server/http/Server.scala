@@ -7,7 +7,9 @@ import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import spray.json._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.headers.Authorization
 import bitbot.server.graphQL.GraphQLServer
+import bitbot.server.graphQL.models.AuthorizationToken
 
 import scala.concurrent.Await
 import com.typesafe.config.ConfigFactory
@@ -28,15 +30,22 @@ object Server extends App{
   scala.sys.addShutdownHook(() -> shutdown())
   
   val route: Route = (post & path("graphql")) {
-    entity(as[JsValue]) { requestJson =>
-      GraphQLServer.endpoint(requestJson)
+    optionalHeaderValueByName("Authorization"){
+      case Some(tag) =>
+        entity(as[JsValue]) {
+          requestJson => GraphQLServer.endpoint(requestJson, Some(AuthorizationToken(tag)))
+        }
+      case None =>
+        entity(as[JsValue]) {
+          requestJson => GraphQLServer.endpoint(requestJson, None)
+        }
     }
+    
   } ~ {
     getFromResource("resources/graphiql.html")
   }
   Http().bindAndHandle(route, "0.0.0.0", PORT)
   println(s"open a browser with URL: http://localhost:$PORT")
-  
   
   def shutdown(): Unit = {
     actorSystem.terminate()

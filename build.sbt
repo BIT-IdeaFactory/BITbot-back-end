@@ -21,5 +21,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-spray-json" % sprayJSONVersion,
   "org.reactivemongo" %% "reactivemongo" % reactiveMongoVersion,
   "org.sangria-graphql" %% "sangria" % sangriaVersion,
-  "org.sangria-graphql" %% "sangria-spray-json" % sangriaSprayVersion
+  "org.sangria-graphql" %% "sangria-spray-json" % sangriaSprayVersion,
+  "com.pauldijou" %% "jwt-core" % "1.0.0"
 )
