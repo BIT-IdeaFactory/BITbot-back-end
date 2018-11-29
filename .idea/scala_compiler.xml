@@ -4,6 +4,10 @@
     <profile name="sbt 1" modules="bitbot-back-end_6003">
       <option name="implicitConversions" value="true" />
     </profile>
-    <profile name="sbt 2" modules="BitBot" />
+    <profile name="sbt 2" modules="BitBot">
+      <parameters>
+        <parameter value="-Ypartial-unification" />
+      </parameters>
+    </profile>
   </component>
 </project>

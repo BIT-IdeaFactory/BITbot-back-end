@@ -1,8 +1,10 @@
 package Documents
 
-import reactivemongo.bson.{BSONDateTime, BSONDocumentHandler, Macros}
+import java.util.Date
 
-case class Event(name: String, date: BSONDateTime, eventLink: String) extends Document
+import reactivemongo.bson.{BSONDocumentHandler, Macros}
+
+case class Event(name: String, date: Date, eventLink: String) extends Document
 
 object Event {
     implicit val eventBSONHandler: BSONDocumentHandler[Event] = Macros.handler[Event]

@@ -8,6 +8,8 @@ lazy val akkaHttpVersion = "10.1.5"
 lazy val reactiveMongoVersion = "0.16.0"
 lazy val sangriaVersion = "1.4.2"
 
+scalacOptions += "-Ypartial-unification"
+
 libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
@@ -15,13 +17,17 @@ libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
     "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    
+
     "org.sangria-graphql" %% "sangria-relay" % sangriaVersion,
-    
+
     "org.reactivemongo" %% "reactivemongo" % reactiveMongoVersion,
     // reactive momgo deps
     "org.apache.logging.log4j" % "log4j-api" % "2.11.1",
     "org.apache.logging.log4j" % "log4j-core" % "2.11.1",
     "org.slf4j" % "slf4j-simple" % "1.7.25",
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+
+    //functor I'm so sorry XD I had to
+    "org.typelevel" %% "cats-core" % "1.5.0-RC1"
+
 )
