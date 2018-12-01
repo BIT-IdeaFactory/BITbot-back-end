@@ -7,7 +7,7 @@ import reactivemongo.bson.BSONDocumentWriter
 import scala.concurrent.Future
 
 trait DataBaseDAO {
-    def insertDocument[T <: Document](document: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult]
+    def insertDocument[T <: Document](document: T, update: Option[T] = Option.empty[T])(implicit writer: BSONDocumentWriter[T]): Future[WriteResult]
 
     def getAdminUser(password: String, login: String): Future[Option[Admin]]
 

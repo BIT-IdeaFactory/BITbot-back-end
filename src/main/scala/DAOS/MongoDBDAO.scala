@@ -2,7 +2,7 @@ package DAOS
 
 import Documents._
 import cats.Functor
-import cats.instances.all._
+import cats.implicits._
 import com.typesafe.config.Config
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.WriteResult
@@ -18,72 +18,92 @@ class MongoDBDAO(val config: Config) extends DataBaseDAO {
     val driver = MongoDriver()
     val database: String = config.getString("mongodb.database")
     val servers: List[String] = config.getStringList("mongodb.servers").asScala.toList
-    val functorFutureOption: Functor[Future[Option[α$$]] forSome {type α$$}] = Functor[Future] compose Functor[Option]
+    type FutureOption[A] = Future[Option[A]]
 
     val connection: MongoConnection = driver.connection(servers)
     val db: Future[DefaultDB] = connection.database(database)
     val collections: Map[String, Future[BSONCollection]] =
         config.getStringList("collectionName.all")
-            .asScala.toList
+            .asScala
+            .toList
             .map(
                 collectionName =>
                     collectionName -> db.map(_.collection[BSONCollection](collectionName))
             ).toMap
 
+    override def getAdminUser(password: String, login: String): Future[Option[Admin]] = {
+        val request = BSONDocument("password" -> password, "login" -> login)
+        getOne(request, classOf[Admin])
+    }
 
-    override def insertDocument[T <: Document](document: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult] = {
+    override def getAllEvents: Future[List[Event]] = {
+        val request = BSONDocument.empty
+        getMany(request, classOf[Event])
+    }
+
+    override def getEvent(name: String): Future[Option[Event]] = {
+        val request = BSONDocument("name" -> name)
+        getOne(request, classOf[Event])
+    }
+
+    override def getTalkers(firstName: String, lastName: String): Future[List[Talker]] = {
+        val request = BSONDocument("firstName" -> firstName, "lastName" -> lastName)
+        getMany(request, classOf[Talker])
+    }
+
+    private def getMany[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[List[T]] = {
+        val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
+        collection.flatMap(_.find(request, None).cursor[T]().collect[List](-1, Cursor.FailOnError()))
+    }
+
+    override def getTalker(fbId: String): Future[Option[Talker]] = {
+        val request = BSONDocument("fbId" -> fbId)
+        getOne(request, classOf[Talker])
+    }
+
+    private def getOne[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[Option[T]] = {
+        val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
+        collection.flatMap(_.find(request, None).one)
+    }
+
+    override def getAllAnswer: Future[List[Answer]] = {
+        val request = BSONDocument.empty
+        getMany(request, classOf[Answer])
+    }
+
+    override def getTalkerAnswer(fbId: String): Future[List[Answer]] = {
+        val request = BSONDocument("talker.fBId" -> fbId)
+        getMany(request, classOf[Answer])
+    }
+
+    override def updateAnswer(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult] = {
+        val request = BSON.writeDocument(answer)
+        val toUpdate: Future[Option[Answer]] = getOne(request, classOf[Answer])
+        val functor = Functor[Future].compose[Option]
+        functor.map(toUpdate)(update => {
+            val updatedVerification = update.verifications match {
+                case None => Some(List(answerVerification))
+                case l@Some(_) => l.map(_ ++ List(answerVerification))
+            }
+            val updateNew: Answer = update.copy(verifications = updatedVerification)
+            insertDocument(update, Some(updateNew))
+        }).flatMap { case Some(wr) => wr }
+    }
+
+    override def insertDocument[T <: Document](document: T, update: Option[T] = Option.empty[T])(implicit writer: BSONDocumentWriter[T]): Future[WriteResult] = {
         val collection = collections(Document.getCollectionName(document.getClass))
         val bsonForm = BSON.writeDocument(document)
-        val writeRes: Future[WriteResult] = collection.flatMap(_.update(bsonForm, bsonForm, upsert = true))
+        val updateDoc: BSONDocument = update match {
+            case None => bsonForm
+            case Some(u) => BSON.writeDocument(u)
+        }
+        val writeRes: Future[WriteResult] = collection.flatMap(_.update(bsonForm, updateDoc, upsert = true))
         writeRes.onComplete {
             case Failure(e) => e.printStackTrace()
             case Success(writeResult) =>
                 println(s"successfully inserted document with result: $writeResult")
         }
         writeRes
-    }
-
-    override def getAdminUser(password: String, login: String): Future[Option[Admin]] = {
-        val request = BSONDocument("password" -> password, "login" -> login)
-        getOne[Admin](request)
-    }
-
-    override def getAllEvents: Future[List[Event]] = {
-        getMany[Event](BSONDocument.empty)
-    }
-
-    override def getEvent(name: String): Future[Option[Event]] = {
-        val request = BSONDocument("name" -> name)
-        getOne[Event](request)
-    }
-
-    private def getOne[T <: Document](request: BSONDocument)(implicit reader: BSONDocumentReader[T]): Future[Option[T]] = {
-        val collection: Future[BSONCollection] = collections(Document.getCollectionName(classOf[T]))
-        functorFutureOption.map(collection.flatMap(_.find(request).one))(BSON.readDocument[T](_))
-    }
-
-    override def getTalkers(firstName: String, lastName: String): Future[List[Talker]] = {
-        val request = BSONDocument("firstName" -> firstName, "lastName" -> lastName)
-        getMany[Talker](request)
-    }
-
-    override def getTalker(fbId: String): Future[Option[Talker]] = {
-        val request = BSONDocument("fbId" -> fbId)
-        getOne[Talker](request)
-    }
-
-    override def getTalkerAnswer(fbId: String): Future[List[Answer]] = ???
-
-    override def updateAnswer(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult] = ???
-
-    //TODO this is not working properly
-    override def getAllAnswer: Future[List[Answer]] = {
-        getMany[Answer](BSONDocument.empty)
-    }
-
-    private def getMany[T <: Document](request: BSONDocument)(implicit reader: BSONDocumentReader[T]): Future[List[T]] = {
-        val collection: Future[BSONCollection] = collections(Document.getCollectionName(classOf[T]))
-        collection.flatMap(_.find(BSONDocument.empty).cursor[T]().collect[List](-1, Cursor.FailOnError()))
     }
 
 }
