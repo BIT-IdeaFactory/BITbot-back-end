@@ -1,7 +1,6 @@
 package bitbot.server.graphQL.schemas
 
 import akka.http.scaladsl.model.DateTime
-import bitbot.server.dbAccesPoints.DataBaseAccessPoint
 import bitbot.server.graphQL.contexts.DashboardContext
 import bitbot.server.graphQL.models.{Authorized, NoAuthorized}
 import sangria.schema
@@ -30,14 +29,14 @@ object GraphQLSchema {
       ),
       Field(
         "event",
-        ListType(EventType),
+        OptionType(EventType),
         tags = Authorized :: Nil,
         arguments = NameArg :: Nil,
         resolve = c => c.ctx.DAO.getEvent(c.arg(NameArg))
       ),
       Field(
         "talker",
-        TalkerType,
+        OptionType(TalkerType),
         arguments = TalkerIdArg :: Nil,
         tags = Authorized :: Nil,
         resolve = c => c.ctx.DAO.getTalker(c.arg(TalkerIdArg))
@@ -77,36 +76,42 @@ object GraphQLSchema {
             token => ctx.ctx.copy(maybeToken = Some(token))
         }
       ),
+      // Not yet implemented
       Field("createAdmin",
         StringType,
         arguments = LoginArg :: PasswordArg :: EmailArg :: Nil,
         tags = Authorized :: Nil,
         resolve = ctx => "Created admin " + ctx.arg(LoginArg)
       ),
+      // Not yet implemented
       Field("deleteAdmin",
         StringType,
         arguments = LoginArg :: Nil,
         tags = Authorized :: Nil,
         resolve = ctx => "Deleted admin " + ctx.arg(LoginArg)
       ),
+      // Not yet implemented
       Field("updateAdmin",
         StringType,
         tags = Authorized :: Nil,
         arguments = LoginArg :: PasswordArg :: EmailArg :: Nil,
         resolve = ctx => "Updated admin " + ctx.arg(LoginArg)
       ),
+      // Not yet implemented
       Field("addEvent",
         StringType,
         tags = Authorized :: Nil,
         arguments = NameArg :: LinkArg :: Nil,
         resolve = ctx => "Created event " + ctx.arg(NameArg)
       ),
+      // Not yet implemented
       Field("updateEvent",
         StringType,
         tags = Authorized :: Nil,
         arguments = NameArg :: LinkArg :: Nil,
         resolve = ctx => "Updated event " + ctx.arg(NameArg)
       ),
+      // Not yet implemented
       Field("deleteEvent",
         StringType,
         tags = Authorized :: Nil,

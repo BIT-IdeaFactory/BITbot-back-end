@@ -1,7 +1,7 @@
 package bitbot.server.graphQL.contexts
 
 
-import bitbot.server.dbAccesPoints.DataBaseAccessPoint
+import bitbot.server.DAOS.DataBaseDAO
 import bitbot.server.graphQL.models._
 import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
 
@@ -9,7 +9,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-case class DashboardContext(DAO: DataBaseAccessPoint, maybeToken: Option[AuthorizationToken] = None) {
+case class DashboardContext(DAO: DataBaseDAO, maybeToken: Option[AuthorizationToken] = None) {
   
   def login(login: String, passwd: String): AuthorizationToken = {
     // login mock

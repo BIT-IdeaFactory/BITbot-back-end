@@ -10,13 +10,14 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 import sangria.ast.Document
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import bitbot.server.dbAccesPoints.MockDataBase
+import bitbot.server.DAOS.MongoDBDAO
 import bitbot.server.graphQL.models.{AuthenticationException, AuthorizationException, AuthorizationToken}
 import bitbot.server.graphQL.schemas.GraphQLSchema
 import sangria.marshalling.sprayJson._
 import sangria.execution.{ExceptionHandler => EHandler, _}
 import bitbot.server.graphQL.contexts.DashboardContext
 import bitbot.server.graphQL.middlewares.AuthMiddleware
+import com.typesafe.config.{Config, ConfigFactory}
 
 object GraphQLServer {
   
@@ -24,6 +25,8 @@ object GraphQLServer {
     case (_, AuthenticationException(message)) ⇒ HandledException(message)
     case (_, AuthorizationException(message)) ⇒ HandledException(message)
   }
+
+  val config: Config = ConfigFactory.load("resources/application.conf")
   
   def endpoint(requestJSON: JsValue, token: Option[AuthorizationToken])(implicit ec: ExecutionContext): Route = {
     val JsObject(fields) = requestJSON
@@ -47,7 +50,7 @@ object GraphQLServer {
     Executor.execute(
       GraphQLSchema.SchemaDefinition,
       query,
-      DashboardContext(new MockDataBase, token),
+      DashboardContext(new MongoDBDAO(config), token),
       variables = vars,
       operationName = operation,
       exceptionHandler = ErrorHandler,

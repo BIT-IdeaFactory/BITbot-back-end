@@ -1,6 +1,5 @@
 package bitbot.server.graphQL
 
-import bitbot.server.dbEntities.Talker
 import sangria.execution.FieldTag
 
 package object models {

@@ -74,13 +74,12 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
-.history
 .cache
 .lib/
-
 
 # Resources with connection strings and other config options
 *.conf
 
 # Preventing other than sbt-build modules file to appear
 .idea/modules/bitbot-back-end.iml
+
