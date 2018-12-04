@@ -19,6 +19,7 @@
             width: 100%;
             overflow: hidden;
         }
+
         #graphiql {
             height: 100vh;
         }
@@ -42,7 +43,7 @@
       copy them directly into your environment, or perhaps include them in your
       favored resource bundler.
      -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/graphiql/0.10.2/graphiql.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/graphiql/0.10.2/graphiql.css"/>
     <script src="//cdn.jsdelivr.net/graphiql/0.10.2/graphiql.min.js"></script>
 
 </head>
@@ -59,14 +60,14 @@
      * various React params to enable interesting integrations.
      */
 
-      // Parse the search string to get url parameters.
+        // Parse the search string to get url parameters.
     var search = window.location.search;
     var parameters = {};
     search.substr(1).split('&').forEach(function (entry) {
         var eq = entry.indexOf('=');
         if (eq >= 0) {
             parameters[decodeURIComponent(entry.slice(0, eq))] =
-              decodeURIComponent(entry.slice(eq + 1));
+                decodeURIComponent(entry.slice(eq + 1));
         }
     });
 
@@ -74,7 +75,7 @@
     if (parameters.variables) {
         try {
             parameters.variables =
-              JSON.stringify(JSON.parse(parameters.variables), null, 2);
+                JSON.stringify(JSON.parse(parameters.variables), null, 2);
         } catch (e) {
             // Do nothing, we want to display the invalid JSON as a string, rather
             // than present an error.
@@ -103,7 +104,7 @@
             return Boolean(parameters[key]);
         }).map(function (key) {
             return encodeURIComponent(key) + '=' +
-              encodeURIComponent(parameters[key]);
+                encodeURIComponent(parameters[key]);
         }).join('&');
         history.replaceState(null, null, newSearch);
     }
@@ -138,16 +139,16 @@
     // how you can customize GraphiQL by providing different values or
     // additional child elements.
     ReactDOM.render(
-      React.createElement(GraphiQL, {
-          fetcher: graphQLFetcher,
-          query: parameters.query,
-          variables: parameters.variables,
-          operationName: parameters.operationName,
-          onEditQuery: onEditQuery,
-          onEditVariables: onEditVariables,
-          onEditOperationName: onEditOperationName
-      }),
-      document.getElementById('graphiql')
+        React.createElement(GraphiQL, {
+            fetcher: graphQLFetcher,
+            query: parameters.query,
+            variables: parameters.variables,
+            operationName: parameters.operationName,
+            onEditQuery: onEditQuery,
+            onEditVariables: onEditVariables,
+            onEditOperationName: onEditOperationName
+        }),
+        document.getElementById('graphiql')
     );
 </script>
 </body>

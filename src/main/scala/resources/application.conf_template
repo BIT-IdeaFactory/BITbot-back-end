@@ -1,0 +1,16 @@
+mongodb {
+  servers = ["addres"]
+  database = "name-db"
+}
+mongo-async-driver {
+  akka {
+    loglevel = WARNING
+  }
+}
+collectionName {
+  admin = "name1"
+  answer = "name2"
+  event = "name3"
+  talker = "name4"
+  all = ["name1", "name2", "name3", "name4"]
+}

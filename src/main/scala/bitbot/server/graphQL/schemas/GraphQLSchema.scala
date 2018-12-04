@@ -1,15 +1,14 @@
 package bitbot.server.graphQL.schemas
 
-import akka.http.scaladsl.model.DateTime
 import bitbot.server.graphQL.contexts.DashboardContext
 import bitbot.server.graphQL.models.{Authorized, NoAuthorized}
-import sangria.schema
 import sangria.schema.{Field, ListType, ObjectType, _}
 
 object GraphQLSchema {
-  
+
 
   import GraphQLTypes._
+
   val LoginArg = Argument("login", StringType)
   val PasswordArg = Argument("password", StringType)
   val NameArg = Argument("name", StringType)
@@ -17,7 +16,7 @@ object GraphQLSchema {
   val SurnameArg = Argument("surname", StringType)
   val EmailArg = Argument("email", StringType)
   val LinkArg = Argument("link", StringType)
-  
+
   val QueryType = ObjectType(
     "Query",
     fields[DashboardContext, Unit](
@@ -63,7 +62,7 @@ object GraphQLSchema {
       )
     )
   )
-  
+
   val Mutation = ObjectType(
     "Mutation",
     fields[DashboardContext, Unit](
@@ -73,7 +72,7 @@ object GraphQLSchema {
         tags = NoAuthorized :: Nil,
         resolve = ctx => UpdateCtx(
           ctx.ctx.login(ctx.arg(LoginArg), ctx.arg(PasswordArg))) {
-            token => ctx.ctx.copy(maybeToken = Some(token))
+          token => ctx.ctx.copy(maybeToken = Some(token))
         }
       ),
       // Not yet implemented
@@ -120,6 +119,6 @@ object GraphQLSchema {
       )
     )
   )
-  
+
   val SchemaDefinition = Schema(QueryType, Some(Mutation))
 }

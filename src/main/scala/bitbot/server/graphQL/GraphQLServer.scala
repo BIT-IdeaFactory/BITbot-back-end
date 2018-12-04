@@ -1,33 +1,33 @@
 package bitbot.server.graphQL
 
-import akka.http.scaladsl.server.Route
-import sangria.parser.QueryParser
-import spray.json.{JsObject, JsString, JsValue}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import bitbot.server.DAO.MongoDBDAO
+import bitbot.server.graphQL.contexts.DashboardContext
+import bitbot.server.graphQL.middlewares.AuthMiddleware
+import bitbot.server.graphQL.models.{AuthenticationException, AuthorizationException, AuthorizationToken}
+import bitbot.server.graphQL.schemas.GraphQLSchema
+import com.typesafe.config.{Config, ConfigFactory}
+import sangria.ast.Document
+import sangria.execution.{ExceptionHandler => EHandler, _}
+import sangria.marshalling.sprayJson._
+import sangria.parser.QueryParser
+import spray.json.{JsObject, JsString, JsValue}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
-import sangria.ast.Document
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import bitbot.server.DAOS.MongoDBDAO
-import bitbot.server.graphQL.models.{AuthenticationException, AuthorizationException, AuthorizationToken}
-import bitbot.server.graphQL.schemas.GraphQLSchema
-import sangria.marshalling.sprayJson._
-import sangria.execution.{ExceptionHandler => EHandler, _}
-import bitbot.server.graphQL.contexts.DashboardContext
-import bitbot.server.graphQL.middlewares.AuthMiddleware
-import com.typesafe.config.{Config, ConfigFactory}
 
 object GraphQLServer {
-  
+
   val ErrorHandler = EHandler {
     case (_, AuthenticationException(message)) ⇒ HandledException(message)
     case (_, AuthorizationException(message)) ⇒ HandledException(message)
   }
 
   val config: Config = ConfigFactory.load("resources/application.conf")
-  
+
   def endpoint(requestJSON: JsValue, token: Option[AuthorizationToken])(implicit ec: ExecutionContext): Route = {
     val JsObject(fields) = requestJSON
     val JsString(query) = fields("query")
@@ -45,7 +45,7 @@ object GraphQLServer {
         complete(BadRequest, JsObject("error" -> JsString(error.getMessage)))
     }
   }
-  
+
   private def executeGraphQLQuery(query: Document, token: Option[AuthorizationToken], operation: Option[String], vars: JsObject)(implicit ec: ExecutionContext) = {
     Executor.execute(
       GraphQLSchema.SchemaDefinition,
@@ -61,5 +61,5 @@ object GraphQLServer {
         case error: ErrorWithResolver => InternalServerError -> error.resolveError
       }
   }
-  
+
 }
