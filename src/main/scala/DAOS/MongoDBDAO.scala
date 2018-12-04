@@ -35,19 +35,9 @@ class MongoDBDAO(val config: Config) extends DataBaseDAO {
     getOne(request, classOf[Admin])
   }
 
-  private def getOne[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[Option[T]] = {
-    val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
-    collection.flatMap(_.find(request, None).one)
-  }
-
   override def getAllEvents: Future[List[Event]] = {
     val request = BSONDocument.empty
     getMany(request, classOf[Event])
-  }
-
-  private def getMany[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[List[T]] = {
-    val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
-    collection.flatMap(_.find(request, None).cursor[T]().collect[List](-1, Cursor.FailOnError()))
   }
 
   override def getEvent(name: String): Future[Option[Event]] = {
@@ -75,7 +65,7 @@ class MongoDBDAO(val config: Config) extends DataBaseDAO {
     getMany(request, classOf[Answer])
   }
 
-  override def updateAnswer(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult] = {
+  override def updateAnswerVerification(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult] = {
     val request = BSON.writeDocument(answer)
     val toUpdate: Future[Option[Answer]] = getOne(request, classOf[Answer])
     val functor = Functor[Future].compose[Option]
@@ -93,6 +83,32 @@ class MongoDBDAO(val config: Config) extends DataBaseDAO {
     insertUpdateDocument(document)
   }
 
+  override def removeDocument[T <: Document](document: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult] = {
+    val collection = collections(Document.getCollectionName(document.getClass))
+    val bsonForm = BSON.writeDocument(document)
+    val writeRes: Future[WriteResult] = collection.flatMap(_.delete().one(bsonForm))
+    writeRes.onComplete {
+      case Failure(e) => e.printStackTrace()
+      case Success(writeResult) =>
+        println(s"successfully deleted document with result: $writeResult")
+    }
+    writeRes
+  }
+
+  override def updateDocument[T <: Document](document: T, update: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult] = {
+    insertUpdateDocument(document, Some(update))
+  }
+
+  private def getOne[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[Option[T]] = {
+    val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
+    collection.flatMap(_.find(request, None).one)
+  }
+
+  private def getMany[T <: Document](request: BSONDocument, classType: Class[T])(implicit reader: BSONDocumentReader[T]): Future[List[T]] = {
+    val collection: Future[BSONCollection] = collections(Document.getCollectionName(classType))
+    collection.flatMap(_.find(request, None).cursor[T]().collect[List](-1, Cursor.FailOnError()))
+  }
+
   private def insertUpdateDocument[T <: Document](document: T, update: Option[T] = Option.empty[T])(implicit writer: BSONDocumentWriter[T]): Future[WriteResult] = {
     val collection = collections(Document.getCollectionName(document.getClass))
     val bsonForm = BSON.writeDocument(document)
@@ -108,7 +124,6 @@ class MongoDBDAO(val config: Config) extends DataBaseDAO {
     }
     writeRes
   }
-
 }
 
 object MongoDBDAO {

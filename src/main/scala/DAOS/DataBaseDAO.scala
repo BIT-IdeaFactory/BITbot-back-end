@@ -23,5 +23,9 @@ trait DataBaseDAO {
 
   def getTalkerAnswer(fbId: String): Future[List[Answer]]
 
-  def updateAnswer(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult]
+  def updateAnswerVerification(answer: Answer, answerVerification: AnswerVerification): Future[WriteResult]
+
+  def removeDocument[T <: Document](document: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult]
+
+  def updateDocument[T <: Document](document: T, update: T)(implicit writer: BSONDocumentWriter[T]): Future[WriteResult]
 }
