@@ -1,4 +1,4 @@
-package Documents
+package bitbot.server.Document
 
 import com.typesafe.config.{Config, ConfigFactory}
 

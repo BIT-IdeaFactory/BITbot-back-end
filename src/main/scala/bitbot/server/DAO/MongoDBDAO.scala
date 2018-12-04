@@ -1,6 +1,6 @@
-package DAOS
+package bitbot.server.DAO
 
-import Documents._
+import bitbot.server.Document._
 import cats.Functor
 import cats.implicits._
 import com.typesafe.config.Config

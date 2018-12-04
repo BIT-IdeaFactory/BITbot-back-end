@@ -76,3 +76,6 @@ project/boot/
 project/plugins/project/
 .cache
 .lib/
+*.conf
+.idea/checkstyle-idea.xml
+.idea/encodings.xml
